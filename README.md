@@ -6,18 +6,20 @@ This project simulates a real-world enterprise Active Directory environment usin
 
 OU Structure to be implemented :
 
+```text
 forest.local
-├── OU=INDIA
-│   ├── OU=PUNE
-│   │   └── OU=MARKETING (User: Ravi)
-│   └── OU=CHENNAI
-│       └── OU=HR (User: Hari)
-├── OU=FRANCE
-│   └── OU=PARIS
-│       └── OU=DESIGN (User: Adrien)
-└── OU=SOUTH_KOREA
-    └── OU=SEOUL
-        └── OU=MARKETING (User: Kim Yoo Jung)
+├─ OU=INDIA
+│  ├─ OU=PUNE
+│  │  └─ OU=MARKETING (User: Ravi)
+│  └─ OU=CHENNAI
+│     └─ OU=HR (User: Hari)
+├─ OU=FRANCE
+│  └─ OU=PARIS
+│     └─ OU=DESIGN (User: Adrien)
+└─ OU=SOUTH_KOREA
+   └─ OU=SEOUL
+      └─ OU=MARKETING (User: Kim Yoo Jung)
+```
 
 ## 🛠️ Active Directory Security Lab — Progress Update
 
