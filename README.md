@@ -102,10 +102,14 @@ Screenshots and configuration exports are saved in a structured format
 
 ```text
 AD-Security-Lab/
-├── Screenshots/            # Proof of implementation (PDFs)
-├── Scripts/                # PowerShell automation scripts
+├── Screenshots/         # Proof of implementation (PDFs) >
+|                           📝 **Note:** Some PDF filenames in the `screenshots/` folder may not perfectly match the
+|                           internal screenshots. However, each file contains the relevant step-by-step visuals, and all major implementation phases are
+|                           documented.
+|
+├── Scripts/             # PowerShell automation scripts
 ├── Logs/                # Exported Event Viewer logs 
-└── README.md               # Project documentation
+└── README.md            # Project documentation
 ```
 
 ---
