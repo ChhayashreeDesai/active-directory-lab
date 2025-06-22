@@ -96,7 +96,7 @@ Screenshots and configuration exports are saved in a structured format
 AD-Security-Lab/
 ├── Screenshots/            # Proof of implementation (PDFs)
 ├── Scripts/                # PowerShell automation scripts
-├── AD_Logs/                # Exported Event Viewer logs 
+├── Logs/                # Exported Event Viewer logs 
 └── README.md               # Project documentation
 ```
 
