@@ -1,10 +1,12 @@
-# Active Directory Security Lab (Student Project)
+# 🛡️ Active Directory Security Lab (Student Project)
 
-This project simulates a real-world enterprise Active Directory environment using a Windows Server VM. The goal is to understand domain structures, user management, GPO enforcement, and simulate common attack scenarios like Kerberoasting and privilege escalation — all in a safe lab setup.
+This project simulates a real-world enterprise **Active Directory (AD)** environment using a Windows Server virtual machine. The goal is to understand domain structures, user and group management, GPO enforcement, auditing, and simulation of common attack vectors like **Kerberoasting** and **ASREPRoasting** in a safe and isolated lab setup.
 
-> 🔐 Built entirely using PowerShell and hands-on configuration inside a virtual environment.
+> 🔐 Built entirely using PowerShell and manual configuration inside a virtual environment.
 
-OU Structure to be implemented :
+---
+
+## 🌐 OU Structure Implemented
 
 ```text
 forest.local
@@ -21,46 +23,95 @@ forest.local
       └─ OU=MARKETING (User: Kim Yoo Jung)
 ```
 
-## 🛠️ Active Directory Security Lab — Progress Update
+---
 
-✅ Week 1
+## 🛠️ Active Directory Security Lab — Progress Updates
 
-🔧 AD Domain Controller Setup
+### ✅ Week 1
 
-Windows Server VM created via VirtualBox
+#### 🔧 AD Domain Controller Setup
+- Created Windows Server VM via VirtualBox
+- Installed Active Directory Domain Services (AD DS)
+- Promoted server to Domain Controller for domain: `FOREST.local`
+- Configured DNS during AD DS installation
 
-AD DS role installed
+#### 🗂️ Organizational Unit (OU) Structure
+- Created **country-level OUs**: INDIA, FRANCE, SOUTH_KOREA
+- Nested **city and department OUs**: PUNE/MARKETING, CHENNAI/HR, PARIS/DESIGN, SEOUL/MARKETING
+- Added additional OUs: `GROUPS`, `INTERNS`
 
-Domain created: FOREST.local
+#### 👥 Users and Groups
+- Created users: Ravi, Adrien, Hari, Kim Yoo Jung, etc.
+- Assigned each user to their respective OU and department
+- Created Security Groups: `Finance_Team`, `IT_Admins`
+- Assigned users to groups based on roles
 
-Promoted to Domain Controller
+#### 🔐 Group Policy Objects (GPOs)
+- Enforced **password complexity** and **account lockout** policies
+- Applied GPOs to specific OUs (e.g., restrictions on INTERNS group)
+- Verified policy application with `gpresult /r` and `gpupdate /force`
 
-🗂️ Organizational Unit (OU) Structure
+#### 🧑‍💼 Delegation of Control
+- Delegated permissions to HR leads for user management tasks like password resets
+- Scoped delegation using ADUC (Active Directory Users and Computers)
+- Tested role-based delegation within OU scope
 
-Country-level OUs: INDIA, FRANCE, SOUTH_KOREA
+---
 
-City/Department sub-OUs: PUNE/MARKETING, PARIS/DESIGN, etc.
+### ✅ Week 2
 
-Additional OUs: GROUPS, INTERNS
+#### 🖼️ Implementation Proof & Documentation
+Screenshots and configuration exports are saved in a structured format
 
-👥 Users and Groups
+#### 🛡️ Attack Simulations and Monitoring
 
-Created test users (e.g. Ravi, Adrien, Hari) and assigned them to correct OUs
+**Kerberoasting**
+- Used PowerView to enumerate SPNs
+- Requested service tickets and extracted hashes with Rubeus
+- Observed corresponding Event IDs in Event Viewer: `4769`, `4624`
 
-Created security groups like Finance_Team, IT_Admins
+**ASREPRoasting**
+- Attempted to exploit accounts with `Do not require Kerberos preauthentication`
+- Used tools like Rubeus to extract AS-REP encrypted data
+- Simulated failed attempts and ensured proper configuration to prevent abuse
 
-Assigned users to groups
+**Audit Logging**
+- Enabled advanced auditing through GPO
+- Exported logs to `AD_Logs/` directory for review:
+  - Security logs
+  - Logon attempts
+  - GPO application status
+  - Delegation activities
 
-🔐 Group Policy Objects (GPOs)
+**Brute Force Attack & Account Lockout**
+- Simulated brute force attempts using common tools/scripts on low-privilege user accounts
+- Triggered account lockout after a defined number of failed logins (e.g., 5 attempts)
+- Verified lockout in Event Viewer via Event IDs: `4740` (account locked), `4625` (failed logon)
+- Validated the effectiveness of password policies and lockout GPOs
+---
 
-Password complexity + lockout policies applied
+## 📁 Repository Structure
 
-GPO targeting interns (command prompt restrictions, etc.)
+```text
+AD-Security-Lab/
+├── Screenshots/            # Proof of implementation (PDFs)
+├── Scripts/                # PowerShell automation scripts
+├── AD_Logs/                # Exported Event Viewer logs 
+└── README.md               # Project documentation
+```
 
-Verified with gpresult and gpupdate
+---
 
-🧑‍💼 Delegation of Control
+## 🏁 Conclusion
 
-Delegated specific rights to users (e.g., reset password rights for HR lead)
+This project provided hands-on exposure to the foundational elements of managing an Active Directory environment, from basic setup to advanced simulations of real-world attack vectors. Skills developed include:
 
-Tested role-based delegation within OU scope
+- Designing scalable OU structures
+- Role-based access and delegation using ADUC
+- Enforcing and troubleshooting Group Policy
+- Simulating and defending against Kerberoasting & ASREPRoasting
+- Auditing and log collection for blue-team visibility
+
+> 🎯 This lab is a foundational step toward understanding red-team and blue-team roles in enterprise environments. It bridges theory and practical implementation in a safe, testable setup using only a Windows Server VM and PowerShell.
+
+---
