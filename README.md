@@ -5,7 +5,15 @@ This project simulates a real-world enterprise **Active Directory (AD)** environ
 > 🔐 Built entirely using PowerShell and manual configuration inside a virtual environment.
 
 ---
+## 🙋‍♀️ About This Repo  
+This is my first GitHub project! I’ve learned a ton about:  
+- AD security  
+- PowerShell automation  
+- Git basics (commits, branches, .gitignore)  
 
+**Suggestions welcome!** Found a better way to organize OUs? Noticed a typo? Open an Issue or PR!  
+
+---
 ## 🌐 OU Structure Implemented
 
 ```text
